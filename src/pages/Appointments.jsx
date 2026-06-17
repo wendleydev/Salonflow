@@ -31,13 +31,15 @@ const mockServices = [
   { id: "service-1", name: "Corte masculino" },
   { id: "service-2", name: "Barba completa" },
   { id: "service-3", name: "Corte + barba" },
+  { id: "service-4", name: "Escova e finalização" },
+  { id: "service-5", name: "Corte feminino" },
 ];
 
 const mockAppointments = [
   {
     id: "appointment-1",
     clientId: "client-1",
-    serviceId: "service-1",
+    serviceId: "service-5",
     dateTime: "2026-06-17T09:00",
     notes: "Cliente prefere atendimento pela manhã.",
     status: APPOINTMENT_STATUS.PENDING,
@@ -53,7 +55,7 @@ const mockAppointments = [
   {
     id: "appointment-3",
     clientId: "client-3",
-    serviceId: "service-2",
+    serviceId: "service-4",
     dateTime: "2026-06-18T11:00",
     notes: "Confirmar horário no dia anterior.",
     status: APPOINTMENT_STATUS.PENDING,
