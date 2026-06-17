@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import logo from "../assets/logo_salon.webp";
+import Footer from "./Footer.jsx";
 
 const links = [
   { to: "/dashboard", label: "Início", end: true },
@@ -10,7 +11,7 @@ const links = [
 
 function Sidebar() {
   return (
-    <aside className="w-full border-b border-brand-dark/10 bg-linear-to-b from-gray-800 to-[#190b2f] text-white md:w-56 md:min-h-screen md:border-b-0 md:border-r">
+    <aside className="flex w-full flex-col border-b border-brand-dark/10 bg-linear-to-b from-gray-800 to-[#190b2f] text-white md:fixed md:left-0 md:top-0 md:h-screen md:w-56 md:border-b-0 md:border-r">
       <div className="flex items-center gap-3 px-2 py-2">
         <img
           src={logo}
@@ -42,6 +43,7 @@ function Sidebar() {
           </NavLink>
         ))}
       </nav>
+      <Footer className="hidden md:block" />
     </aside>
   );
 }

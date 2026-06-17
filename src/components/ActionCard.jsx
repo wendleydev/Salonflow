@@ -1,14 +1,16 @@
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import Button from "./Button.jsx";
 
-function ActionCard({ to, title, description, image, actionLabel }) {
+function ActionCard({ to, title, description, image, imageAlt, actionLabel }) {
+  const navigate = useNavigate();
+
   return (
-    <Link
-      to={to}
+    <article
       className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-brand-magenta/50 hover:shadow-md md:flex-row"
     >
       <img
         src={image}
-        alt=""
+        alt={imageAlt}
         className="mb-4 h-48 w-full rounded-lg object-cover md:mb-0 md:mr-4 md:h-auto md:w-48"
       />
 
@@ -18,12 +20,16 @@ function ActionCard({ to, title, description, image, actionLabel }) {
           <p className="mb-6 text-sm text-slate-500">{description}</p>
         </div>
 
-        <span className="inline-flex w-fit items-center rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white">
+        <Button
+          variant="ghost"
+          className="w-fit text-brand-purple hover:bg-brand-purple/10"
+          onClick={() => navigate(to)}
+        >
           {actionLabel}
           <span className="ml-2">→</span>
-        </span>
+        </Button>
       </div>
-    </Link>
+    </article>
   );
 }
 
