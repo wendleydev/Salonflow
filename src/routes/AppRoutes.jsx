@@ -6,6 +6,7 @@ import Appointments from "../pages/Appointments.jsx";
 import Clients from "../pages/Clients.jsx";
 import Dashboard from "../pages/Dashboard.jsx";
 import Login from "../pages/Login.jsx";
+import NotFound from "../pages/NotFound.jsx";
 import Register from "../pages/Register.jsx";
 import Services from "../pages/Services.jsx";
 import ProtectedRoute from "./ProtectedRoute.jsx";
@@ -57,7 +58,7 @@ function AppRoutes() {
           <Route path="servicos" element={<Services />} />
           <Route path="agendamentos" element={<Appointments />} />
         </Route>
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );
