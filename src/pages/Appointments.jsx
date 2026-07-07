@@ -1,12 +1,19 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Button from "../components/Button.jsx";
+import LoadingSpinner from "../components/LoadingSpinner.jsx";
 import PageHeader from "../components/PageHeader.jsx";
-
-const APPOINTMENT_STATUS = {
-  PENDING: "pendente",
-  COMPLETED: "concluido",
-  CANCELLED: "cancelado",
-};
+import { useAuth } from "../hooks/useAuth.js";
+import { useToast } from "../hooks/useToast.js";
+import { listClients } from "../services/clientsService.js";
+import { listServices } from "../services/servicesService.js";
+import {
+  APPOINTMENT_STATUS,
+  createAppointment,
+  deleteAppointment,
+  listAppointments,
+  markAppointmentCompleted,
+  updateAppointment,
+} from "../services/appointmentsService.js";
 
 const emptyForm = {
   clientId: "",
@@ -21,47 +28,6 @@ const statusLabels = {
   [APPOINTMENT_STATUS.CANCELLED]: "Cancelado",
 };
 
-const mockClients = [
-  { id: "client-1", name: "Marina Souza" },
-  { id: "client-2", name: "Carlos Lima" },
-  { id: "client-3", name: "Ana Paula" },
-];
-
-const mockServices = [
-  { id: "service-1", name: "Corte masculino" },
-  { id: "service-2", name: "Barba completa" },
-  { id: "service-3", name: "Corte + barba" },
-  { id: "service-4", name: "Escova e finalização" },
-  { id: "service-5", name: "Corte feminino" },
-];
-
-const mockAppointments = [
-  {
-    id: "appointment-1",
-    clientId: "client-1",
-    serviceId: "service-5",
-    dateTime: "2026-06-17T09:00",
-    notes: "Cliente prefere atendimento pela manhã.",
-    status: APPOINTMENT_STATUS.PENDING,
-  },
-  {
-    id: "appointment-2",
-    clientId: "client-2",
-    serviceId: "service-3",
-    dateTime: "2026-06-17T14:30",
-    notes: "",
-    status: APPOINTMENT_STATUS.COMPLETED,
-  },
-  {
-    id: "appointment-3",
-    clientId: "client-3",
-    serviceId: "service-4",
-    dateTime: "2026-06-18T11:00",
-    notes: "Confirmar horário no dia anterior.",
-    status: APPOINTMENT_STATUS.PENDING,
-  },
-];
-
 function formatDateTime(iso) {
   if (!iso) return "—";
   return new Date(iso).toLocaleString("pt-BR", {
@@ -71,24 +37,58 @@ function formatDateTime(iso) {
 }
 
 function Appointments() {
+  const { user } = useAuth();
+  const { showToast } = useToast();
+  const [appointments, setAppointments] = useState([]);
+  const [clients, setClients] = useState([]);
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(emptyForm);
+  const [editingId, setEditingId] = useState(null);
+  const [saving, setSaving] = useState(false);
   const [filterStatus, setFilterStatus] = useState("todos");
   const [filterDate, setFilterDate] = useState("");
 
+  const loadAppointmentsData = useCallback(async function loadAppointmentsData() {
+    if (!user) return;
+    setLoading(true);
+
+    try {
+      const [appointmentsData, clientsData, servicesData] = await Promise.all([
+        listAppointments(user.uid),
+        listClients(user.uid),
+        listServices(user.uid),
+      ]);
+
+      setAppointments(appointmentsData);
+      setClients(clientsData);
+      setServices(servicesData);
+    } catch (error) {
+      showToast(error.message || "Erro ao carregar agendamentos", "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [showToast, user]);
+
+  useEffect(() => {
+    loadAppointmentsData();
+  }, [loadAppointmentsData]);
+
   const clientMap = useMemo(
-    () => Object.fromEntries(mockClients.map((client) => [client.id, client.name])),
-    [],
+    () =>
+      Object.fromEntries(clients.map((client) => [client.id, client.name])),
+    [clients],
   );
   const serviceMap = useMemo(
     () =>
       Object.fromEntries(
-        mockServices.map((service) => [service.id, service.name]),
+        services.map((service) => [service.id, service.name]),
       ),
-    [],
+    [services],
   );
 
   const filtered = useMemo(() => {
-    return mockAppointments.filter((appointment) => {
+    return appointments.filter((appointment) => {
       if (
         filterStatus !== "todos" &&
         appointment.status !== filterStatus
@@ -98,16 +98,89 @@ function Appointments() {
         return false;
       return true;
     });
-  }, [filterStatus, filterDate]);
+  }, [appointments, filterStatus, filterDate]);
 
   function resetForm() {
     setForm(emptyForm);
+    setEditingId(null);
   }
 
-  function handleSubmit(e) {
-    e.preventDefault();
-    resetForm();
+  function startEdit(appointment) {
+    setEditingId(appointment.id);
+    setForm({
+      clientId: appointment.clientId || "",
+      serviceId: appointment.serviceId || "",
+      dateTime: (appointment.dateTime || "").slice(0, 16),
+      notes: appointment.notes || "",
+    });
   }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (!user) return;
+    setSaving(true);
+
+    const payload = {
+      clientId: form.clientId,
+      serviceId: form.serviceId,
+      dateTime: form.dateTime,
+      notes: form.notes.trim(),
+    };
+
+    try {
+      if (editingId) {
+        await updateAppointment(editingId, payload);
+        showToast("Agendamento atualizado com sucesso!");
+      } else {
+        await createAppointment(user.uid, {
+          ...payload,
+          status: APPOINTMENT_STATUS.PENDING,
+        });
+        showToast("Agendamento criado com sucesso!");
+      }
+
+      resetForm();
+      await loadAppointmentsData();
+    } catch (error) {
+      showToast(error.message || "Erro ao salvar agendamento", "error");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleComplete(id) {
+    try {
+      await markAppointmentCompleted(id);
+      showToast("Agendamento concluído!");
+      await loadAppointmentsData();
+    } catch (error) {
+      showToast(error.message || "Erro ao concluir agendamento", "error");
+    }
+  }
+
+  async function handleCancel(id) {
+    try {
+      await updateAppointment(id, { status: APPOINTMENT_STATUS.CANCELLED });
+      showToast("Agendamento cancelado.");
+      await loadAppointmentsData();
+    } catch (error) {
+      showToast(error.message || "Erro ao cancelar agendamento", "error");
+    }
+  }
+
+  async function handleDelete(id) {
+    if (!confirm("Excluir este agendamento?")) return;
+
+    try {
+      await deleteAppointment(id);
+      showToast("Agendamento excluído com sucesso!");
+      await loadAppointmentsData();
+    } catch (error) {
+      showToast(error.message || "Erro ao excluir agendamento", "error");
+    }
+  }
+
+  const canCreate = clients.length > 0 && services.length > 0;
 
   return (
     <div>
@@ -125,9 +198,10 @@ function Appointments() {
           value={form.clientId}
           onChange={(e) => setForm({ ...form, clientId: e.target.value })}
           className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+          disabled={!canCreate}
         >
           <option value="">Cliente *</option>
-          {mockClients.map((client) => (
+          {clients.map((client) => (
             <option key={client.id} value={client.id}>
               {client.name}
             </option>
@@ -138,9 +212,10 @@ function Appointments() {
           value={form.serviceId}
           onChange={(e) => setForm({ ...form, serviceId: e.target.value })}
           className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+          disabled={!canCreate}
         >
           <option value="">Serviço *</option>
-          {mockServices.map((service) => (
+          {services.map((service) => (
             <option key={service.id} value={service.id}>
               {service.name}
             </option>
@@ -152,20 +227,33 @@ function Appointments() {
           value={form.dateTime}
           onChange={(e) => setForm({ ...form, dateTime: e.target.value })}
           className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+          disabled={!canCreate}
         />
         <input
           placeholder="Observações"
           value={form.notes}
           onChange={(e) => setForm({ ...form, notes: e.target.value })}
           className="rounded-lg border border-slate-300 px-3 py-2 text-sm md:col-span-2"
+          disabled={!canCreate}
         />
         <div className="flex gap-2">
-          <Button type="submit">Agendar</Button>
-          <Button type="button" variant="ghost" onClick={resetForm}>
-            Limpar
+          <Button type="submit" disabled={saving || !canCreate}>
+            {editingId ? "Atualizar" : "Agendar"}
           </Button>
+          {editingId && (
+            <Button type="button" variant="ghost" onClick={resetForm}>
+              Cancelar edição
+            </Button>
+          )}
         </div>
       </form>
+
+      {!canCreate && !loading && (
+        <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          Cadastre pelo menos um cliente e um serviço antes de criar
+          agendamentos.
+        </p>
+      )}
 
       <div className="mt-6 flex flex-wrap gap-3">
         <select
@@ -197,7 +285,11 @@ function Appointments() {
         )}
       </div>
 
-      {filtered.length === 0 ? (
+      {loading ? (
+        <div className="mt-8 flex justify-center">
+          <LoadingSpinner />
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="mt-8">
           <PageHeader
             title="Nenhum agendamento"
@@ -238,10 +330,33 @@ function Appointments() {
               </div>
               <div className="flex flex-wrap gap-2">
                 {appointment.status === APPOINTMENT_STATUS.PENDING && (
-                  <Button variant="primary">Concluir</Button>
+                  <>
+                    <Button
+                      variant="primary"
+                      onClick={() => handleComplete(appointment.id)}
+                    >
+                      Concluir
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleCancel(appointment.id)}
+                    >
+                      Cancelar
+                    </Button>
+                  </>
                 )}
-                <Button variant="secondary">Editar</Button>
-                <Button variant="danger">Excluir</Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => startEdit(appointment)}
+                >
+                  Editar
+                </Button>
+                <Button
+                  variant="danger"
+                  onClick={() => handleDelete(appointment.id)}
+                >
+                  Excluir
+                </Button>
               </div>
             </article>
           ))}

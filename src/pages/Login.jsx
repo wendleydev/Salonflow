@@ -2,19 +2,46 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AuthLayout from "../components/AuthLayout.jsx";
 import Button from "../components/Button.jsx";
+import { useAuth } from "../hooks/useAuth.js";
+import { useToast } from "../hooks/useToast.js";
 
 function Login() {
+  const { login, loginWithGoogle } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    navigate("/dashboard");
+    setLoading(true);
+
+    try {
+      await login(email, password);
+      showToast("Login realizado com sucesso!");
+      navigate("/dashboard");
+    } catch (error) {
+      showToast(error.message || "Erro ao entrar", "error");
+    } finally {
+      setLoading(false);
+    }
   }
 
-  function handleGoogleLogin() {
-    navigate("/dashboard");
+  async function handleGoogleLogin() {
+    setLoading(true);
+
+    try {
+      await loginWithGoogle();
+      showToast("Login com Google realizado!");
+      navigate("/dashboard");
+    } catch (error) {
+      if (error.code !== "auth/popup-closed-by-user") {
+        showToast(error.message || "Erro ao entrar com Google", "error");
+      }
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -45,8 +72,8 @@ function Login() {
             className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-purple focus:outline-none focus:ring-1 focus:ring-brand-purple"
           />
         </div>
-        <Button type="submit" className="w-full">
-          Entrar
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? "Entrando..." : "Entrar"}
         </Button>
       </form>
 
@@ -60,6 +87,7 @@ function Login() {
         type="button"
         variant="secondary"
         className="w-full"
+        disabled={loading}
         onClick={handleGoogleLogin}
       >
         <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" aria-hidden>
