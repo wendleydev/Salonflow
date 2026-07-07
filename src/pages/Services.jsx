@@ -5,6 +5,12 @@ import PageHeader from "../components/PageHeader.jsx";
 import { useAuth } from "../hooks/useAuth.js";
 import { useToast } from "../hooks/useToast.js";
 import {
+  createDemoService,
+  deleteDemoService,
+  listDemoServices,
+  updateDemoService,
+} from "../services/demoDataService.js";
+import {
   createService,
   deleteService,
   listServices,
@@ -14,7 +20,7 @@ import {
 const emptyForm = { name: "", price: "", durationMinutes: "" };
 
 function Services() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { showToast } = useToast();
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -26,6 +32,12 @@ function Services() {
     if (!user) return;
     setLoading(true);
 
+    if (!isAdmin) {
+      setServices(await listDemoServices());
+      setLoading(false);
+      return;
+    }
+
     try {
       const data = await listServices(user.uid);
       setServices(data);
@@ -34,7 +46,7 @@ function Services() {
     } finally {
       setLoading(false);
     }
-  }, [showToast, user]);
+  }, [isAdmin, showToast, user]);
 
   useEffect(() => {
     loadServices();
@@ -65,6 +77,20 @@ function Services() {
       durationMinutes: Number(form.durationMinutes) || 30,
     };
 
+    if (!isAdmin) {
+      if (editingId) {
+        await updateDemoService(editingId, payload);
+        showToast("Modo demo: serviço atualizado apenas neste navegador.");
+      } else {
+        await createDemoService(payload);
+        showToast("Modo demo: serviço cadastrado apenas neste navegador.");
+      }
+      resetForm();
+      await loadServices();
+      setSaving(false);
+      return;
+    }
+
     try {
       if (editingId) {
         await updateService(editingId, payload);
@@ -85,6 +111,13 @@ function Services() {
   async function handleDelete(id) {
     if (!confirm("Excluir este serviço?")) return;
 
+    if (!isAdmin) {
+      await deleteDemoService(id);
+      showToast("Modo demo: serviço removido apenas neste navegador.");
+      await loadServices();
+      return;
+    }
+
     try {
       await deleteService(id);
       showToast("Serviço excluído com sucesso!");
@@ -100,6 +133,12 @@ function Services() {
         title="Serviços"
         description="Monte a vitrine de serviços oferecidos pelo salão."
       />
+      {!isAdmin && (
+        <p className="mt-4 rounded-lg bg-sky-50 px-3 py-2 text-sm text-sky-800">
+          Ambiente de demonstração: apenas o administrador pode alterar dados
+          reais. Suas alterações ficam salvas somente neste navegador.
+        </p>
+      )}
 
       <form
         onSubmit={handleSubmit}

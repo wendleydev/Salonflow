@@ -14,6 +14,7 @@ import { AuthContext } from "./authContext.js";
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const adminEmail = import.meta.env.VITE_ADMIN_EMAIL?.toLowerCase();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -48,7 +49,19 @@ export function AuthProvider({ children }) {
     return signOut(auth);
   }
 
-  const value = { user, loading, login, register, loginWithGoogle, logout };
+  const isAdmin = Boolean(
+    user?.email && adminEmail && user.email.toLowerCase() === adminEmail,
+  );
+
+  const value = {
+    user,
+    loading,
+    isAdmin,
+    login,
+    register,
+    loginWithGoogle,
+    logout,
+  };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

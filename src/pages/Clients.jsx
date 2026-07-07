@@ -10,11 +10,17 @@ import {
   listClients,
   updateClient,
 } from "../services/clientsService.js";
+import {
+  createDemoClient,
+  deleteDemoClient,
+  listDemoClients,
+  updateDemoClient,
+} from "../services/demoDataService.js";
 
 const emptyForm = { name: "", phone: "", email: "" };
 
 function Clients() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { showToast } = useToast();
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,6 +31,11 @@ function Clients() {
   const load = useCallback(async function load() {
     if (!user) return;
     setLoading(true);
+    if (!isAdmin) {
+      setClients(await listDemoClients());
+      setLoading(false);
+      return;
+    }
     try {
       setClients(await listClients(user.uid));
     } catch {
@@ -32,7 +43,7 @@ function Clients() {
     } finally {
       setLoading(false);
     }
-  }, [showToast, user]);
+  }, [isAdmin, showToast, user]);
 
   useEffect(() => {
     load();
@@ -56,6 +67,21 @@ function Clients() {
     e.preventDefault();
     if (!user) return;
     setSaving(true);
+
+    if (!isAdmin) {
+      if (editingId) {
+        await updateDemoClient(editingId, form);
+        showToast("Modo demo: cliente atualizado apenas neste navegador.");
+      } else {
+        await createDemoClient(form);
+        showToast("Modo demo: cliente cadastrado apenas neste navegador.");
+      }
+      resetForm();
+      await load();
+      setSaving(false);
+      return;
+    }
+
     try {
       if (editingId) {
         await updateClient(editingId, form);
@@ -75,6 +101,13 @@ function Clients() {
 
   async function handleDelete(id) {
     if (!confirm("Excluir este cliente?")) return;
+    if (!isAdmin) {
+      await deleteDemoClient(id);
+      showToast("Modo demo: cliente removido apenas neste navegador.");
+      await load();
+      return;
+    }
+
     try {
       await deleteClient(id);
       showToast("Cliente excluído");
@@ -90,6 +123,12 @@ function Clients() {
         title="Clientes"
         description="Cadastre, edite e acompanhe os clientes do salão."
       />
+      {!isAdmin && (
+        <p className="mt-4 rounded-lg bg-sky-50 px-3 py-2 text-sm text-sky-800">
+          Ambiente de demonstração: apenas o administrador pode alterar dados
+          reais. Suas alterações ficam salvas somente neste navegador.
+        </p>
+      )}
       <form
         onSubmit={handleSubmit}
         className="mt-6 grid gap-4 rounded-xl border border-slate-200 bg-white p-4 md:grid-cols-4"

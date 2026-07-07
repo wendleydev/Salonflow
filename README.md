@@ -68,6 +68,8 @@ Melhorias futuras:
 - [x] Persistência de sessão com Firebase.
 - [x] Redirecionamento de usuários autenticados.
 - [x] Proteção de rotas privadas.
+- [x] Modo admin para gravação real no Firestore.
+- [x] Modo demo para usuários comuns testarem sem salvar dados reais.
 
 ### Dashboard
 
@@ -107,7 +109,7 @@ src/
 - `firebase`: configuração de conexão com Firebase Authentication e Firestore.
 - `pages`: telas principais acessadas pelas rotas da aplicação.
 - `routes`: definição das rotas públicas, privadas e aninhadas.
-- `services`: funções responsáveis pela comunicação com o Firestore.
+- `services`: funções responsáveis pela comunicação com o Firestore e pelo modo demo local.
 
 ## Demonstração
 
@@ -134,11 +136,14 @@ VITE_FIREBASE_STORAGE_BUCKET=seu-projeto.firebasestorage.app
 VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
 VITE_FIREBASE_APP_ID=1:123456789:web:abcdef
 VITE_REGISTER_ACCESS_CODE=defina_um_codigo_de_acesso
+VITE_ADMIN_EMAIL=admin@exemplo.com
 ```
 
 O arquivo `.env` não deve ser enviado para o GitHub.
 
 O `VITE_REGISTER_ACCESS_CODE` é usado como uma barreira simples para limitar cadastros públicos na demonstração. Por ser uma variável exposta no bundle do front-end, ele não substitui regras de segurança do Firebase.
+
+O `VITE_ADMIN_EMAIL` define qual conta pode criar, editar e excluir dados reais no Firestore. Usuários autenticados com outro e-mail entram em modo demo: conseguem testar clientes, serviços e agendamentos, mas as alterações ficam apenas na sessão do navegador.
 
 ## Como Rodar
 

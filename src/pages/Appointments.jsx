@@ -2,6 +2,15 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Button from "../components/Button.jsx";
 import LoadingSpinner from "../components/LoadingSpinner.jsx";
 import PageHeader from "../components/PageHeader.jsx";
+import {
+  createDemoAppointment,
+  deleteDemoAppointment,
+  listDemoAppointments,
+  listDemoClients,
+  listDemoServices,
+  markDemoAppointmentCompleted,
+  updateDemoAppointment,
+} from "../services/demoDataService.js";
 import { useAuth } from "../hooks/useAuth.js";
 import { useToast } from "../hooks/useToast.js";
 import { listClients } from "../services/clientsService.js";
@@ -37,7 +46,7 @@ function formatDateTime(iso) {
 }
 
 function Appointments() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { showToast } = useToast();
   const [appointments, setAppointments] = useState([]);
   const [clients, setClients] = useState([]);
@@ -52,6 +61,20 @@ function Appointments() {
   const loadAppointmentsData = useCallback(async function loadAppointmentsData() {
     if (!user) return;
     setLoading(true);
+
+    if (!isAdmin) {
+      const [appointmentsData, clientsData, servicesData] = await Promise.all([
+        listDemoAppointments(),
+        listDemoClients(),
+        listDemoServices(),
+      ]);
+
+      setAppointments(appointmentsData);
+      setClients(clientsData);
+      setServices(servicesData);
+      setLoading(false);
+      return;
+    }
 
     try {
       const [appointmentsData, clientsData, servicesData] = await Promise.all([
@@ -68,7 +91,7 @@ function Appointments() {
     } finally {
       setLoading(false);
     }
-  }, [showToast, user]);
+  }, [isAdmin, showToast, user]);
 
   useEffect(() => {
     loadAppointmentsData();
@@ -127,6 +150,24 @@ function Appointments() {
       notes: form.notes.trim(),
     };
 
+    if (!isAdmin) {
+      if (editingId) {
+        await updateDemoAppointment(editingId, payload);
+        showToast("Modo demo: agendamento atualizado apenas neste navegador.");
+      } else {
+        await createDemoAppointment({
+          ...payload,
+          status: APPOINTMENT_STATUS.PENDING,
+        });
+        showToast("Modo demo: agendamento criado apenas neste navegador.");
+      }
+
+      resetForm();
+      await loadAppointmentsData();
+      setSaving(false);
+      return;
+    }
+
     try {
       if (editingId) {
         await updateAppointment(editingId, payload);
@@ -149,6 +190,13 @@ function Appointments() {
   }
 
   async function handleComplete(id) {
+    if (!isAdmin) {
+      await markDemoAppointmentCompleted(id);
+      showToast("Modo demo: agendamento concluído apenas neste navegador.");
+      await loadAppointmentsData();
+      return;
+    }
+
     try {
       await markAppointmentCompleted(id);
       showToast("Agendamento concluído!");
@@ -159,6 +207,13 @@ function Appointments() {
   }
 
   async function handleCancel(id) {
+    if (!isAdmin) {
+      await updateDemoAppointment(id, { status: APPOINTMENT_STATUS.CANCELLED });
+      showToast("Modo demo: agendamento cancelado apenas neste navegador.");
+      await loadAppointmentsData();
+      return;
+    }
+
     try {
       await updateAppointment(id, { status: APPOINTMENT_STATUS.CANCELLED });
       showToast("Agendamento cancelado.");
@@ -170,6 +225,13 @@ function Appointments() {
 
   async function handleDelete(id) {
     if (!confirm("Excluir este agendamento?")) return;
+
+    if (!isAdmin) {
+      await deleteDemoAppointment(id);
+      showToast("Modo demo: agendamento removido apenas neste navegador.");
+      await loadAppointmentsData();
+      return;
+    }
 
     try {
       await deleteAppointment(id);
@@ -188,6 +250,12 @@ function Appointments() {
         title="Agendamentos"
         description="Organize os horários do salão e acompanhe o status dos atendimentos."
       />
+      {!isAdmin && (
+        <p className="mt-4 rounded-lg bg-sky-50 px-3 py-2 text-sm text-sky-800">
+          Ambiente de demonstração: apenas o administrador pode alterar dados
+          reais. Suas alterações ficam salvas somente neste navegador.
+        </p>
+      )}
 
       <form
         onSubmit={handleSubmit}
