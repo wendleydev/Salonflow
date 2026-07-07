@@ -87,6 +87,13 @@ Melhorias futuras:
 - [x] `Serviços`: cadastro, edição, listagem e exclusão.
 - [x] `Agendamentos`: cadastro, edição, conclusão, cancelamento, exclusão e filtros.
 
+### Publicação e SEO
+
+- [x] Deploy na Vercel.
+- [x] Metatags básicas de SEO.
+- [x] Open Graph e Twitter Card para compartilhamento.
+- [x] `robots.txt`, `sitemap.xml` e manifest configurados.
+
 ## Estrutura
 
 ```txt
@@ -115,14 +122,6 @@ src/
 
 Aplicação: https://salonflow-dashboard.vercel.app
 
-## Screenshots
-
-Em breve:
-
-- Login
-- Dashboard
-- Clientes
-- Agendamentos
 
 ## Variáveis de Ambiente
 
