@@ -1,31 +1,35 @@
 # SalonFlow Dashboard
 
-Dashboard moderno para gerenciamento de salão de beleza/barbearia, criado como projeto de estudo prático em React e JavaScript.
+Dashboard moderno para gerenciamento de salão de beleza/barbearia, criado como projeto de estudo prático em React, JavaScript e Firebase.
 
-O objetivo do SalonFlow é simular uma aplicação real de portfólio, com autenticação, rotas protegidas, layout responsivo e base preparada para CRUD de clientes, serviços e agendamentos.
+## Sobre o projeto
+
+O SalonFlow Dashboard é uma aplicação SPA desenvolvida para simular o gerenciamento de um salão de beleza ou barbearia. O projeto foi construído como forma de consolidar conhecimentos em React, JavaScript e Firebase por meio de um cenário de negócio real.
+
+A aplicação conta com autenticação, rotas protegidas, layout responsivo e CRUD completo de clientes, serviços e agendamentos usando Firestore.
 
 ## Status
 
-Projeto em desenvolvimento.
+Primeira versão funcional concluída.
 
-Implementado até aqui:
+Implementado:
 
-- Layout responsivo de dashboard.
-- Sidebar fixa no desktop e navegação adaptada para telas menores.
-- Login e cadastro com layout próprio.
-- Firebase Authentication configurado.
-- Rotas públicas e rotas protegidas.
-- Context API para autenticação.
-- Toast global para feedback visual.
-- CRUD real de clientes com Firestore.
-- CRUD real de serviços com Firestore.
-- CRUD real de agendamentos com Firestore.
-- Filtros de agendamentos por status e data.
-- Marcação de agendamento como concluído.
-- Cancelamento e exclusão de agendamentos.
-- Imagens otimizadas em WebP.
+- [x] Layout responsivo de dashboard.
+- [x] Sidebar fixa no desktop e navegação adaptada para telas menores.
+- [x] Login e cadastro com layout próprio.
+- [x] Firebase Authentication configurado.
+- [x] Rotas públicas e rotas protegidas.
+- [x] Context API para autenticação.
+- [x] Toast global para feedback visual.
+- [x] CRUD real de clientes com Firestore.
+- [x] CRUD real de serviços com Firestore.
+- [x] CRUD real de agendamentos com Firestore.
+- [x] Filtros de agendamentos por status e data.
+- [x] Marcação de agendamento como concluído.
+- [x] Cancelamento e exclusão de agendamentos.
+- [x] Imagens otimizadas em WebP.
 
-Ainda planejado:
+Melhorias futuras:
 
 - Estados de loading e empty state mais refinados.
 - Deploy.
@@ -33,42 +37,52 @@ Ainda planejado:
 
 ## Tecnologias
 
+### Front-end
+
 - React
 - Vite
 - JavaScript
 - Tailwind CSS
 - React Router DOM
+
+### Backend as a Service
+
 - Firebase Authentication
 - Firestore
+
+### Ferramentas
+
 - ESLint
+- Git
+- GitHub
 
 ## Funcionalidades
 
 ### Autenticação
 
-- Cadastro com e-mail e senha.
-- Login com e-mail e senha.
-- Login com Google.
-- Logout.
-- Persistência de sessão com Firebase.
-- Redirecionamento de usuários autenticados.
-- Proteção de rotas privadas.
+- [x] Cadastro com e-mail e senha.
+- [x] Login com e-mail e senha.
+- [x] Login com Google.
+- [x] Logout.
+- [x] Persistência de sessão com Firebase.
+- [x] Redirecionamento de usuários autenticados.
+- [x] Proteção de rotas privadas.
 
 ### Dashboard
 
-- Layout com sidebar, navbar e área principal.
-- Cards de ações rápidas.
-- Footer responsivo.
-- Navegação interna com rotas aninhadas.
+- [x] Layout com sidebar, navbar e área principal.
+- [x] Cards de ações rápidas.
+- [x] Footer responsivo.
+- [x] Navegação interna com rotas aninhadas.
 
 ### Páginas
 
-- `Login`
-- `Register`
-- `Dashboard`
-- `Clientes`: cadastro, edição, listagem e exclusão.
-- `Serviços`: cadastro, edição, listagem e exclusão.
-- `Agendamentos`: cadastro, edição, conclusão, cancelamento, exclusão e filtros.
+- [x] `Login`
+- [x] `Register`
+- [x] `Dashboard`
+- [x] `Clientes`: cadastro, edição, listagem e exclusão.
+- [x] `Serviços`: cadastro, edição, listagem e exclusão.
+- [x] `Agendamentos`: cadastro, edição, conclusão, cancelamento, exclusão e filtros.
 
 ## Estrutura
 
@@ -83,6 +97,29 @@ src/
 ├── routes/
 └── services/
 ```
+
+## Arquitetura
+
+- `components`: componentes reutilizáveis da interface, como botões, layouts, sidebar, navbar e estados visuais.
+- `context`: providers responsáveis por estados globais da aplicação, como autenticação e feedback visual.
+- `hooks`: hooks customizados para consumir contextos de forma organizada.
+- `firebase`: configuração de conexão com Firebase Authentication e Firestore.
+- `pages`: telas principais acessadas pelas rotas da aplicação.
+- `routes`: definição das rotas públicas, privadas e aninhadas.
+- `services`: funções responsáveis pela comunicação com o Firestore.
+
+## Demonstração
+
+Aplicação: em breve.
+
+## Screenshots
+
+Em breve:
+
+- Login
+- Dashboard
+- Clientes
+- Agendamentos
 
 ## Variáveis de Ambiente
 
@@ -142,7 +179,7 @@ npm run lint
 npm run preview
 ```
 
-## Aprendizados Praticados
+## Conceitos Aplicados Durante o Desenvolvimento
 
 - Componentização.
 - Props e `children`.
