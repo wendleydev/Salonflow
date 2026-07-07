@@ -9,13 +9,26 @@ function Register() {
   const { register, loginWithGoogle } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
+  const registerAccessCode = import.meta.env.VITE_REGISTER_ACCESS_CODE;
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [accessCode, setAccessCode] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
+
+    if (!registerAccessCode) {
+      showToast("Cadastro indisponível no momento", "error");
+      return;
+    }
+
+    if (accessCode.trim() !== registerAccessCode) {
+      showToast("Código de acesso inválido", "error");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -84,6 +97,21 @@ function Register() {
             onChange={(e) => setPassword(e.target.value)}
             className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-purple focus:outline-none focus:ring-1 focus:ring-brand-purple"
           />
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium text-slate-700">
+            Código de acesso
+          </label>
+          <input
+            type="text"
+            required
+            value={accessCode}
+            onChange={(e) => setAccessCode(e.target.value)}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-purple focus:outline-none focus:ring-1 focus:ring-brand-purple"
+          />
+          <p className="mt-1 text-xs text-slate-500">
+            O cadastro é limitado para evitar uso indevido da demonstração.
+          </p>
         </div>
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? "Criando..." : "Cadastrar"}

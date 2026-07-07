@@ -61,6 +61,7 @@ Melhorias futuras:
 ### Autenticação
 
 - [x] Cadastro com e-mail e senha.
+- [x] Cadastro limitado por código de acesso.
 - [x] Login com e-mail e senha.
 - [x] Login com Google.
 - [x] Logout.
@@ -132,9 +133,12 @@ VITE_FIREBASE_PROJECT_ID=seu-projeto
 VITE_FIREBASE_STORAGE_BUCKET=seu-projeto.firebasestorage.app
 VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
 VITE_FIREBASE_APP_ID=1:123456789:web:abcdef
+VITE_REGISTER_ACCESS_CODE=defina_um_codigo_de_acesso
 ```
 
 O arquivo `.env` não deve ser enviado para o GitHub.
+
+O `VITE_REGISTER_ACCESS_CODE` é usado como uma barreira simples para limitar cadastros públicos na demonstração. Por ser uma variável exposta no bundle do front-end, ele não substitui regras de segurança do Firebase.
 
 ## Como Rodar
 
