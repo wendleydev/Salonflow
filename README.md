@@ -110,7 +110,7 @@ src/
 
 ## Demonstração
 
-Aplicação: em breve.
+Aplicação: https://salonflow-dashboard.vercel.app
 
 ## Screenshots
 
